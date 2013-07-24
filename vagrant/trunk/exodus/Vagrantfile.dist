@@ -1,0 +1,60 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+dirPuppet = "C:\\development\\PeakWeb\\tools\\puppet\\trunk"
+
+Vagrant.configure("2") do |config|
+
+    # Setup the base virtual machine
+    config.vm.box = "exodus"
+    config.vm.box_url = "http://packages.vstone.eu/vagrant-boxes/centos/6.3/centos-6.3-64bit-puppet-vbox.4.2.4.box"
+
+    # Assign this VM a public (or bridged) network adapter, allowing anyone to
+    # connect to it on the same network as the host. An IP address will be
+    # assigned via DHCP and can be determined using `vagrant ssh` and then
+    # `ifconfig`. 
+    #config.vm.network :public_network
+
+    # Assign this VM a host-only network adapter, allowing you to access it via
+    # the specified IP. Host-only networks can talk to the host machine as well
+    # as any other machines on the same network, but cannot be accessed by other
+    # machines or devices on the host's external network. 
+    config.vm.network :private_network, ip: "10.0.0.14" 
+
+    # Forward a port from the guest to the host, which allows for outside
+    # computers to access the VM, whereas host only networking does not.
+    # The final :auto_correct parameter set to true tells Vagrant to auto 
+    # correct any collisions. During a vagrant up or vagrant reload, Vagrant 
+    # will output information about any collisions detections and auto 
+    # corrections made, so you can take notice and act accordingly. 
+    config.vm.network :forwarded_port, guest: 80, host: 8080, auto_correct: true
+
+    config.vm.hostname = "exodus.dev"
+
+    config.vm.provider :virtualbox do |vbox| 
+        # Boot Virtualbox VM with a GUI
+        #vbox.gui = true
+
+        # VBoxManage - allocate physical RAM
+        vbox.customize ["modifyvm", :id, "--memory", "3072"]
+        # VBoxManage - share RAM allocation with other VMs
+        vbox.customize ["modifyvm", :id, "--guestmemoryballoon", "1024"]
+
+        # Cap the Host CPU utilization
+        vbox.customize ["controlvm", :id, "cpuexecutioncap", "70"]
+
+    end
+
+    # Enable provisioning with Puppet stand alone.  Puppet manifests are
+    # contained in a directory path relative to this Vagrantfile. You will need
+    # to create the manifests directory and a manifest in the file base.pp in the
+    # manifests_path directory. 
+    config.vm.provision :puppet do |puppet| 
+        puppet.manifests_path = "#{dirPuppet}/manifests"
+        puppet.module_path = "#{dirPuppet}/modules"
+        puppet.manifest_file = "exodus.pp" 
+        puppet.options = [ 
+            '--verbose', 
+            #'--debug', 
+        ] 
+    end
+end

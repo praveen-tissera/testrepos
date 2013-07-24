@@ -1,0 +1,57 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+#print "\nplease type in the full path you checked out the WBE code (use / for directory seperator): "
+#codeDir = $stdin.readline 
+#print "\nplease type in the full path you checked out the wsdl-classgen code (use / for directory seperator): "
+#wsdlDir = $stdin.readline 
+
+codeDir = "C:\\Development\\projects\\Holodeck"
+puppetModulePath = "C:\\Development\\PeakWeb\\tools\\puppet\\trunk\\modules"
+puppetManifestsPath = "C:\\Development\\PeakWeb\\tools\\puppet\\trunk\\manifests"
+
+Vagrant::Config.run do |config|
+
+  # Setup the base virtual machine
+  config.vm.box = "centos-6.3-64bit"
+  #config.vm.box_url = "http://packages.vstone.eu/vagrant-boxes/centos/6.3/centos-6.3-64bit-puppet-vbox.4.2.4.box"
+  config.vm.box_url = "\\\\aumelprdfs01\\ITPL$\\IT\\011 Webmaster\\Intrepid Dev DB Backups\\centos-6.3-64bit-puppet-vbox.4.2.4.box"
+
+  # Boot with a GUI so you can see the screen. (Default is headless)
+  config.vm.boot_mode = :gui
+  
+  config.vm.customize ["modifyvm", :id, "--memory", 1024]
+
+  # Assign this VM to a host-only network IP, allowing you to access it
+  # via the IP. Host-only networks can talk to the host machine as well as
+  # any other machines on the same network, but cannot be accessed (through this
+  # network interface) by any external networks.
+  config.vm.network :hostonly, "10.0.0.12"
+
+  # Assign this VM to a bridged network, allowing you to connect directly to a
+  # network using the host's network device. This makes the VM appear as another
+  # physical device on your network.
+  # config.vm.network :bridged
+
+  # Forward a port from the guest to the host, which allows for outside
+  # computers to access the VM, whereas host only networking does not.
+  # config.vm.forward_port 80, 8080
+
+  # Share an additional folder to the guest VM. The first argument is
+  # an identifier, the second is the path on the guest to mount the
+  # folder, and the third is the path on the host to the actual folder.
+  config.vm.share_folder "wbe-code", "/opt/projects/Holodeck", codeDir, :extra => 'dmode=777,fmode=777', :create => true
+  #config.vm.share_folder "wsdl-classgen", "/opt/projects/wsdl-classgen", wsdlDir, :extra => 'dmode=777,fmode=777', :create => true
+
+  # Enable provisioning with Puppet stand alone.  Puppet manifests
+  # are contained in a directory path relative to this Vagrantfile.
+  # You will need to create the manifests directory and a manifest in
+  # the file base.pp in the manifests_path directory. 
+  config.vm.provision :puppet do |puppet|
+    #puppet.options = "--verbose --debug"
+    puppet.manifests_path = puppetManifestsPath
+    puppet.module_path    = puppetModulePath
+    puppet.manifest_file  = "holodeck.pp"
+  end
+
+end

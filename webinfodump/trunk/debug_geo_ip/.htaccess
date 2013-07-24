@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "PEAK Debug Page"
+AuthUserFile /var/www/vhosts/drupalintrepid/debug_geo_ip/passwords
+Require valid-user
